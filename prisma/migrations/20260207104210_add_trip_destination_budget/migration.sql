@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Trip" ADD COLUMN     "budget" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN     "destination" TEXT NOT NULL DEFAULT '';
