@@ -1,0 +1,2 @@
+﻿src/controller/paymentController.ts(80,13): error TS18046: 'data' is of type 'unknown'.
+src/controller/paymentController.ts(97,73): error TS18046: 'data' is of type 'unknown'.
