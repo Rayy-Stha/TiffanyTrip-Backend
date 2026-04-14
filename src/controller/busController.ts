@@ -49,10 +49,10 @@ export const searchBuses = async (req: Request, res: Response) => {
         const searchDate = new Date(date as string);
         const dayOfWeek = searchDate.toLocaleDateString('en-US', { weekday: 'long' });
 
-        const results = routes.flatMap(route =>
+        const results = routes.flatMap((route: any) =>
             route.schedules
-                .filter(schedule => schedule.daysOfWeek.includes(dayOfWeek))
-                .map(schedule => ({
+                .filter((schedule: any) => schedule.daysOfWeek.includes(dayOfWeek))
+                .map((schedule: any) => ({
                     id: schedule.id.toString(),
                     busId: schedule.bus.id.toString(),
                     routeId: route.id.toString(),

@@ -48,9 +48,9 @@ const searchBuses = async (req, res) => {
         // Filter schedules by date and format response
         const searchDate = new Date(date);
         const dayOfWeek = searchDate.toLocaleDateString('en-US', { weekday: 'long' });
-        const results = routes.flatMap(route => route.schedules
-            .filter(schedule => schedule.daysOfWeek.includes(dayOfWeek))
-            .map(schedule => ({
+        const results = routes.flatMap((route) => route.schedules
+            .filter((schedule) => schedule.daysOfWeek.includes(dayOfWeek))
+            .map((schedule) => ({
             id: schedule.id.toString(),
             busId: schedule.bus.id.toString(),
             routeId: route.id.toString(),
