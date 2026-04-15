@@ -5,10 +5,12 @@ dotenv.config();
 
 // Create transporter using SMTP credentials from .env
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: process.env.SMTP_HOST || 'in-v3.mailjet.com',
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
     auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: process.env.MAILJET_API_KEY || process.env.SMTP_USER,
+        pass: process.env.MAILJET_SECRET_KEY || process.env.SMTP_PASS,
     },
 });
 
@@ -21,7 +23,7 @@ export const generateOTP = (): string => {
 export const sendOTPEmail = async (email: string, otp: string): Promise<boolean> => {
     try {
         await transporter.sendMail({
-            from: process.env.SMTP_USER,
+            from: process.env.EMAIL_FROM || "remanstha10@gmail.com",
             to: email,
             subject: "Triffny Trip - Email Verification OTP",
             html: `
@@ -84,7 +86,7 @@ export const sendOTPEmail = async (email: string, otp: string): Promise<boolean>
 export const sendPasswordResetOTPEmail = async (email: string, otp: string): Promise<boolean> => {
     try {
         await transporter.sendMail({
-            from: process.env.SMTP_USER,
+            from: process.env.EMAIL_FROM || "remanstha10@gmail.com",
             to: email,
             subject: "Triffny Trip - Password Reset OTP",
             html: `
