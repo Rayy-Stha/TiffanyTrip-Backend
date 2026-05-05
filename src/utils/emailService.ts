@@ -1,18 +1,40 @@
-import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-// Create transporter using Brevo SMTP credentials from .env
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-    port: Number(process.env.SMTP_PORT) || 587,
-    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for 587
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
-});
+// Function to send email using Brevo's REST API (bypasses Render SMTP port blocks)
+const sendBrevoEmail = async (toEmail: string, subject: string, htmlContent: string, textContent: string) => {
+    const apiKey = process.env.SMTP_PASS;
+    if (!apiKey) {
+        throw new Error("Brevo API key (SMTP_PASS) is missing.");
+    }
+
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+            "accept": "application/json",
+            "api-key": apiKey,
+            "content-type": "application/json"
+        },
+        body: JSON.stringify({
+            sender: {
+                name: "Triffny Trip",
+                email: process.env.EMAIL_FROM || "remanstha10@gmail.com"
+            },
+            to: [{ email: toEmail }],
+            subject: subject,
+            htmlContent: htmlContent,
+            textContent: textContent
+        })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Brevo API Error: ${response.status} - ${JSON.stringify(errorData)}`);
+    }
+
+    return true;
+};
 
 // Generate a random 5-digit OTP
 export const generateOTP = (): string => {
@@ -22,11 +44,9 @@ export const generateOTP = (): string => {
 // Send OTP to email
 export const sendOTPEmail = async (email: string, otp: string): Promise<boolean> => {
     try {
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM || "remanstha10@gmail.com",
-            to: email,
-            subject: "Triffny Trip - Email Verification OTP",
-            html: `
+        const subject = "Triffny Trip - Email Verification OTP";
+        const textContent = `Triffny Trip - Email Verification\n\nYour OTP is: ${otp}\n\nThis is valid for 10 minutes.\n\nDo not share this OTP with anyone.\n\nTriffny Trip - Your Journey, Our Care`;
+        const htmlContent = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 20px; border-radius: 8px;">
                     <div style="text-align: center; margin-bottom: 30px;">
                         <h1 style="color: #FF6B35; margin: 0; font-size: 32px;">Triffny Trip</h1>
@@ -70,9 +90,9 @@ export const sendOTPEmail = async (email: string, otp: string): Promise<boolean>
                         </p>
                     </div>
                 </div>
-            `,
-            text: `Triffny Trip - Email Verification\n\nYour OTP is: ${otp}\n\nThis is valid for 10 minutes.\n\nDo not share this OTP with anyone.\n\nTriffny Trip - Your Journey, Our Care`,
-        });
+            `;
+            
+        await sendBrevoEmail(email, subject, htmlContent, textContent);
 
         console.log(`OTP sent successfully to ${email}`);
         return true;
@@ -86,11 +106,9 @@ export const sendOTPEmail = async (email: string, otp: string): Promise<boolean>
 // Send password reset OTP to email
 export const sendPasswordResetOTPEmail = async (email: string, otp: string): Promise<boolean> => {
     try {
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM || "remanstha10@gmail.com",
-            to: email,
-            subject: "Triffny Trip - Password Reset OTP",
-            html: `
+        const subject = "Triffny Trip - Password Reset OTP";
+        const textContent = `Triffny Trip - Password Reset\n\nYour OTP is: ${otp}\n\nThis is valid for 10 minutes.\n\nDo not share this OTP with anyone.\n\nTriffny Trip - Your Journey, Our Care`;
+        const htmlContent = `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9f9f9; padding: 20px; border-radius: 8px;">
                     <div style="text-align: center; margin-bottom: 30px;">
                         <h1 style="color: #FF6B35; margin: 0; font-size: 32px;">Triffny Trip</h1>
@@ -134,9 +152,9 @@ export const sendPasswordResetOTPEmail = async (email: string, otp: string): Pro
                         </p>
                     </div>
                 </div>
-            `,
-            text: `Triffny Trip - Password Reset\n\nYour OTP is: ${otp}\n\nThis is valid for 10 minutes.\n\nDo not share this OTP with anyone.\n\nTriffny Trip - Your Journey, Our Care`,
-        });
+            `;
+
+        await sendBrevoEmail(email, subject, htmlContent, textContent);
 
         console.log(`Password reset OTP sent successfully to ${email}`);
         return true;
